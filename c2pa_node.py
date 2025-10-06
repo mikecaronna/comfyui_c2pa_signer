@@ -37,6 +37,13 @@ class C2PASigner:
                     "default": "{}",
                     "multiline": True,
                 }),
+                "workflow_json": ("STRING", {
+                    "default": "",
+                    "multiline": True,
+                }),
+                "include_workflow_metadata": (["enable", "disable"], {
+                    "default": "disable"
+                }),
             }
         }
 
@@ -46,7 +53,8 @@ class C2PASigner:
     CATEGORY = "image/postprocessing"
     OUTPUT_NODE = True
 
-    def sign_image(self, image, private_key_path, cert_path, filename_prefix="C2PA_signed", manifest_json="{}"):
+    def sign_image(self, image, private_key_path, cert_path, filename_prefix="C2PA_signed",
+                   manifest_json="{}", workflow_json="", include_workflow_metadata="disable"):
         """
         Sign image(s) with C2PA manifest using c2patool.
         Supports batch processing - signs each image in the batch individually.
@@ -55,7 +63,10 @@ class C2PASigner:
             image: ComfyUI image tensor (batch, height, width, channels)
             private_key_path: Path to the private key file
             cert_path: Path to the certificate file
+            filename_prefix: Prefix for output filenames
             manifest_json: Optional JSON string for custom attestations
+            workflow_json: Optional ComfyUI workflow JSON to embed
+            include_workflow_metadata: Enable/disable workflow metadata embedding
 
         Returns:
             Signed image(s) as ComfyUI tensor
@@ -100,6 +111,37 @@ class C2PASigner:
                 # Set default signing algorithm if not specified
                 if "alg" not in manifest_data:
                     manifest_data["alg"] = "es256"
+
+                # Add ComfyUI workflow metadata if enabled
+                if include_workflow_metadata == "enable" and workflow_json and workflow_json.strip():
+                    try:
+                        workflow_data = json.loads(workflow_json)
+
+                        # Ensure assertions array exists
+                        if "assertions" not in manifest_data:
+                            manifest_data["assertions"] = []
+
+                        # Create workflow assertion
+                        workflow_assertion = {
+                            "label": "com.comfyui.workflow",
+                            "data": {
+                                "@context": "https://comfyui.org/",
+                                "@type": "ComfyUIWorkflow",
+                                "workflow": workflow_data,
+                                "generator": "ComfyUI",
+                                "embedded_date": datetime.now().isoformat()
+                            }
+                        }
+
+                        manifest_data["assertions"].append(workflow_assertion)
+
+                        if batch_size == 1:
+                            print("✨ ComfyUI workflow metadata will be embedded in signature")
+                        else:
+                            print(f"✨ ComfyUI workflow metadata will be embedded [{batch_idx + 1}/{batch_size}]")
+
+                    except json.JSONDecodeError as e:
+                        print(f"⚠️  Warning: Invalid workflow JSON, skipping workflow metadata: {e}")
 
                 # Write manifest to temp file
                 manifest_path = os.path.join(temp_dir, "manifest.json")
