@@ -157,6 +157,86 @@ The signature is **invisible** - the image looks the same, but the file is sligh
 
 ---
 
+### Signing Multiple Images at Once (Batch Signing)
+
+**Good news!** The C2PA Image Signer automatically handles multiple images. If you connect multiple images to it, it will sign each one individually.
+
+#### How It Works
+
+When you sign multiple images at once:
+- Each image gets signed separately with its own C2PA manifest
+- Each signed image is saved as a separate file
+- The console shows progress as each image is signed
+
+#### Setting Up a Batch Workflow
+
+**Option 1: Using the Batch Images Node**
+
+This is the easiest way to sign multiple images:
+
+```
+[Load Image] ──┐
+               ├─→ [Batch Images] → [C2PA Image Signer]
+[Load Image] ──┘
+```
+
+**Steps:**
+1. Add 2 or more `Load Image` nodes
+2. Load different images in each one
+3. Add a `Batch Images` node
+4. Connect all the Load Image nodes to the Batch Images node
+5. Connect Batch Images to your C2PA Image Signer
+6. Run the workflow!
+
+**Option 2: For More Than 2 Images**
+
+The standard Batch Images node in ComfyUI usually supports 2 images. To batch more:
+
+```
+[Load Image] ──┐
+               ├─→ [Batch Images] ──┐
+[Load Image] ──┘                    ├─→ [Batch Images] → [C2PA Image Signer]
+                                    │
+[Load Image] ───────────────────────┘
+```
+
+Connect the first Batch Images node to a second one, and add another image to the second node. This way you can combine 3+ images.
+
+#### What You'll See
+
+When signing multiple images, the console output shows progress:
+
+**For 3 images:**
+```
+🔏 C2PA Batch Signing: Processing 3 image(s)...
+✅ C2PA signing successful [1/3]
+💾 Saved: C:/Users/.../output/C2PA_signed_20251006_123456_batch000.png
+✅ C2PA signing successful [2/3]
+💾 Saved: C:/Users/.../output/C2PA_signed_20251006_123456_batch001.png
+✅ C2PA signing successful [3/3]
+💾 Saved: C:/Users/.../output/C2PA_signed_20251006_123456_batch002.png
+🎉 Batch signing complete! Signed 3 image(s)
+```
+
+#### File Naming
+
+**Single image:**
+- `C2PA_signed_20251006_123456.png`
+
+**Multiple images:**
+- `C2PA_signed_20251006_123456_batch000.png`
+- `C2PA_signed_20251006_123456_batch001.png`
+- `C2PA_signed_20251006_123456_batch002.png`
+
+The `batch000`, `batch001`, etc. helps you keep track of which signed file came from which input image.
+
+**Why batch signing is useful:**
+- Save time when signing lots of images
+- All images get the same signature settings
+- Perfect for signing a collection or series of images at once
+
+---
+
 ### Verifying Signed Images: Using the C2PA Verifier
 
 The **C2PA Verifier** node lets you read and display C2PA manifests from signed images directly in ComfyUI.
