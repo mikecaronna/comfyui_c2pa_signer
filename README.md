@@ -237,6 +237,97 @@ The `batch000`, `batch001`, etc. helps you keep track of which signed file came 
 
 ---
 
+### Embedding Your Workflow in Signatures (Optional)
+
+**What is this?** You can include your entire ComfyUI workflow inside the signature. This means anyone who verifies the signed image can see exactly how you created it - which nodes you used, what settings you applied, everything!
+
+**Why would you want this?**
+- **Full transparency** - Prove exactly how the image was made
+- **Reproducibility** - Others can recreate your work
+- **AI art attribution** - Show which AI models and prompts you used
+- **Learning** - Share your workflow with others
+
+#### How to Embed Workflow Metadata
+
+The C2PA Image Signer has two new optional fields for this:
+
+1. **workflow_json** - Paste your exported workflow here
+2. **include_workflow_metadata** - Set to "enable" to turn this feature on
+
+#### Step-by-Step Guide
+
+**Step 1: Export Your Workflow**
+
+1. In ComfyUI, create your workflow as normal
+2. Click the **gear icon** (⚙️) or settings menu
+3. Click **"Save (API Format)"** or **"Export"**
+4. This saves a JSON file with your complete workflow
+
+**Step 2: Copy the Workflow JSON**
+
+1. Open the saved JSON file in Notepad or any text editor
+2. Select all the text (Ctrl+A)
+3. Copy it (Ctrl+C)
+
+**Step 3: Paste into C2PA Signer Node**
+
+1. In your ComfyUI workflow, find the C2PA Image Signer node
+2. Find the **workflow_json** field (it's a big text box)
+3. Paste your copied workflow JSON (Ctrl+V)
+4. Set **include_workflow_metadata** dropdown to **"enable"**
+5. Run your workflow!
+
+#### What You'll See
+
+When workflow metadata embedding is enabled, the console will show:
+
+```
+✨ ComfyUI workflow metadata will be embedded in signature
+✅ C2PA signing successful
+💾 Saved: C:/Users/.../output/C2PA_signed_20251006_123456.png
+```
+
+That ✨ tells you the workflow was successfully embedded!
+
+#### Verifying Workflow Metadata
+
+When you use the C2PA Verifier on a signed image with workflow metadata, you'll see:
+
+```
+✅ C2PA Manifest Found
+🔒 Signature: Valid
+📋 Assertions: 2
+  • stds.schema-org.CreativeWork
+  • com.comfyui.workflow
+```
+
+The `com.comfyui.workflow` assertion contains your full workflow! You can view it in the full manifest JSON output.
+
+#### Important Notes
+
+**Privacy Warning:** Your workflow JSON may contain:
+- File paths from your computer
+- Model names and locations
+- Node settings and parameters
+- Prompt text (including any sensitive info you typed)
+
+If you're signing images publicly, review your workflow JSON first and remove any private information you don't want to share.
+
+**When to Use This:**
+- ✅ Sharing AI art with full attribution
+- ✅ Professional work requiring provenance
+- ✅ Educational content showing your process
+- ✅ Open-source creative projects
+
+**When NOT to Use This:**
+- ❌ Private work with sensitive paths/prompts
+- ❌ Commercial work with proprietary techniques
+- ❌ When you want to keep your process secret
+
+**If you don't need it:** Just leave `include_workflow_metadata` set to "disable" (the default). Your images will still be signed normally, just without the workflow data embedded.
+
+---
+
 ### Verifying Signed Images: Using the C2PA Verifier
 
 The **C2PA Verifier** node lets you read and display C2PA manifests from signed images directly in ComfyUI.
