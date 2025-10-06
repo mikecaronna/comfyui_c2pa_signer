@@ -49,7 +49,7 @@ class C2PAVerifier:
 
             # Call c2patool to read manifest
             try:
-                cmd = ["c2patool", temp_path, "--output", "json"]
+                cmd = ["c2patool", temp_path]
 
                 result = subprocess.run(
                     cmd,
