@@ -181,9 +181,31 @@ class C2PAVerifier:
 
         except subprocess.CalledProcessError as e:
             # Error running c2patool
-            error_msg = f"❌ Error verifying C2PA manifest:\n{e.stderr}"
-            print(error_msg)
-            return ("{}", error_msg, image)
+            # Check if it's the "no claim found" error
+            if "No claim found" in e.stderr or "No claim found" in e.stdout:
+                # No C2PA manifest found - provide helpful guidance
+                if file_path and file_path.strip():
+                    summary = (
+                        "❌ No C2PA manifest found in this file\n\n"
+                        "This means the file is not signed, or the signature was removed.\n"
+                        "Make sure you're checking a file that was created by the C2PA Image Signer node."
+                    )
+                else:
+                    summary = (
+                        "❌ No C2PA manifest found\n\n"
+                        "This is expected! Image tensors don't include file metadata.\n\n"
+                        "📝 To verify a signed image:\n"
+                        "1. Sign an image (check the output folder for the saved file)\n"
+                        "2. Enter the full path to that file in the 'file_path' field above\n\n"
+                        "Example: C:/Users/YourName/Documents/ComfyUI/output/C2PA_signed_20251006_094628.png"
+                    )
+                print(summary)
+                return ("{}", summary, image)
+            else:
+                # Some other error from c2patool
+                error_msg = f"❌ Error verifying C2PA manifest:\n{e.stderr}"
+                print(error_msg)
+                return ("{}", error_msg, image)
 
         except FileNotFoundError:
             error_msg = (
