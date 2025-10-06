@@ -1,0 +1,56 @@
+# C2PA Private Keys and Certificates - NEVER commit these!
+keys/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.tmp
+*.bak
+.~*
