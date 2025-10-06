@@ -101,7 +101,11 @@ This is a helper program that does the actual signing. Think of it like installi
 
 ## How to Use It
 
-### The Simple Workflow
+This custom node package includes **two nodes**:
+1. **C2PA Image Signer** - Signs images with C2PA manifests
+2. **C2PA Verifier** - Reads and displays C2PA manifests from signed images
+
+### Signing Images: The Simple Workflow
 
 In ComfyUI, your workflow looks like this:
 
@@ -150,6 +154,88 @@ After you run the workflow, check:
 Look for files named like: `C2PA_signed_20251006_094628.png`
 
 The signature is **invisible** - the image looks the same, but the file is slightly larger because it contains the signature data.
+
+---
+
+### Verifying Signed Images: Using the C2PA Verifier
+
+The **C2PA Verifier** node lets you read and display C2PA manifests from signed images directly in ComfyUI.
+
+**Important:** C2PA signatures are stored in the **file's metadata**, not in the image pixels. When images flow through ComfyUI as tensors, they lose this metadata. Therefore, to verify a signed image, you need to provide the **file path** to the actual signed file on disk.
+
+#### How to Use the C2PA Verifier
+
+Your verification workflow looks like this:
+
+```
+[Load Image] → [C2PA Verifier] → [Preview Any or Show Text]
+```
+
+**The Node Inputs:**
+
+1. **image** (required, connect from Load Image)
+   - This is for ComfyUI workflow compatibility
+   - The verifier needs a tensor input, but won't use it for verification
+
+2. **file_path** (optional, but required for actual verification)
+   - The **full path** to a signed image file on disk
+   - Example: `C:/Users/YourName/Documents/ComfyUI/output/C2PA_signed_20251006_094628.png`
+   - ⚠️ Use forward slashes `/` not backslashes `\`
+
+**The Node Outputs:**
+
+- **manifest_json** - Full C2PA manifest as JSON (technical details)
+- **summary** - Human-readable summary showing:
+  - ✅ Whether a manifest was found
+  - 🔒 Signature validation status
+  - 👤 Issuer/creator information
+  - 📋 List of assertions (metadata)
+- **image** - Passthrough of input image for workflow chaining
+
+#### Example Workflow: Sign and Verify
+
+1. **Sign an image:**
+   ```
+   [Load Image] → [C2PA Image Signer]
+   ```
+   Run this workflow and note the output path shown in the console
+
+2. **Verify the signed image:**
+   ```
+   [Load Image] → [C2PA Verifier] → [Preview Any]
+   ```
+   - In the C2PA Verifier node, paste the full file path to your signed image
+   - Connect the output to Preview Any or Show Text to see the verification results
+   - You should see "✅ C2PA Manifest Found" with signature details
+
+#### What You'll See
+
+**If verification succeeds:**
+```
+✅ C2PA Manifest Found
+🔒 Signature: Valid
+👤 Issuer: C2PA Test Signing Cert
+🔐 Algorithm: es256
+📋 Assertions: 1
+  • stds.schema-org.CreativeWork
+```
+
+**If you forget to enter the file_path:**
+```
+❌ No C2PA manifest found
+
+This is expected! Image tensors don't include file metadata.
+
+📝 To verify a signed image:
+1. Sign an image (check the output folder for the saved file)
+2. Enter the full path to that file in the 'file_path' field above
+
+Example: C:/Users/YourName/Documents/ComfyUI/output/C2PA_signed_20251006_094628.png
+```
+
+**Why can't the verifier read from the tensor?**
+
+C2PA signatures are stored in the image **file's metadata**, not in the pixel data. When an image flows through ComfyUI, only the pixel values (the tensor) are passed along - the file metadata is left behind. This is why you need to provide the file path to the actual signed file on disk.
 
 ---
 
@@ -219,7 +305,20 @@ Common things to include:
 
 ## Checking If It Worked
 
-After signing an image, you can verify it contains a signature:
+After signing an image, you can verify it contains a signature in two ways:
+
+### Option 1: Using the C2PA Verifier Node (Easiest!)
+
+Use the **C2PA Verifier** node in ComfyUI:
+1. Add the C2PA Verifier node to your workflow
+2. Paste the full path to your signed image in the `file_path` field
+3. Connect to Preview Any or Show Text
+4. Run the workflow
+5. You should see "✅ C2PA Manifest Found" with signature details
+
+See the [Verifying Signed Images](#verifying-signed-images-using-the-c2pa-verifier) section above for detailed instructions.
+
+### Option 2: Using Command Line
 
 1. Open Command Prompt
 2. Type:
